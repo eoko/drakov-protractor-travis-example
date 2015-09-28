@@ -10,7 +10,7 @@
     "browser-sync-spa": "~1.0.2",
     "chalk": "~1.1.1",
     "del": "~2.0.1",
-    "drakov": "git+ssh://git@github.com:rixo/drakov#dedistack",
+    "drakov": "rixo/drakov#dedistack",
     "eslint-plugin-angular": "~0.11.0",
     "gulp": "~3.9.0",
     "gulp-angular-filesort": "~1.1.1",
