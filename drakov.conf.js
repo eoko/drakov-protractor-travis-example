@@ -14,8 +14,7 @@ module.exports = {
     headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true
   },
-  autoOptions: true,
-  originCORS: 'http://localhost:3000'
+  autoOptions: true
   //sslKeyFile: '/path/to/ssl/key.key',
   //sslCrtFile: '/path/to/ssl/cert.crt',
   //delay: 2000,
