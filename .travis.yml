@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "0.10"
+before_script:
+  - npm install -g gulp
+  - npm install -g bower
+  - npm install
+  - bower install
+script:
+  - xvfb-run -s "-screen 0 1280x1024x16" gulp protractor:ci --browser firefox

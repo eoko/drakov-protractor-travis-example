@@ -36,3 +36,9 @@ function runProtractor (done) {
 gulp.task('protractor', ['protractor:src']);
 gulp.task('protractor:src', ['serve:e2e', 'webdriver-update'], runProtractor);
 gulp.task('protractor:dist', ['serve:e2e-dist', 'webdriver-update'], runProtractor);
+
+gulp.task('protractor:ci', ['drakov'], function() {
+  gulp.start('protractor:dist', function(done) {
+    require('drakov').stop(done);
+  });
+});
