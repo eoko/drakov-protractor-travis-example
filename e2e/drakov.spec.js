@@ -7,6 +7,6 @@ describe('drakov connection', function() {
     element(by.css('#drakov-test-button')).click();
 
     expect(element(by.binding('message')).getText())
-      .toBe("Hello World!");
+      .toBe("Hello API World!");
   });
 });

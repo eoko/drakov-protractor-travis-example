@@ -1,7 +1,621 @@
 FORMAT: 1A
-HOST: https://localhost:3000
+HOST: http://localhost:3010
 
-# GET /message
+<!-- file: /home/eric/projects/dedistack-client/api/login-oauth.mock.apib -->
+# Login Mocks
+
+## Group Login
+
+### Authentication [/api/oauth]
+
+#### Mocks [POST]
+
++ Request (application/json)
+
+    Bad Credentials
+    
+    + Body
+
+            {
+                "client_id": "dedistack",
+                "grant_type": "password",
+                "username": "bad-credentials",
+                "password": "password"
+            }
+
++ Response 401 (application/problem+json)
+
+        {
+            "type": "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
+            "title": "invalid_grant",
+            "status": 401,
+            "detail": "Invalid username and password combination"
+        }
+
++ Request (application/json)
+
+    Server Error
+    
+    + Body
+
+            {
+                "client_id": "dedistack",
+                "grant_type": "password",
+                "username": "server-error",
+                "password": "password"
+            }
+
++ Response 500 (application/problem+json)
+
+        {
+            "type": "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
+            "title": "server_error",
+            "status": 401,
+            "detail": "Unexpected Error"
+        }
+
++ Request (application/json)
+
+    Network Error
+    
+    + Body
+
+            {
+                "client_id": "dedistack",
+                "grant_type": "password",
+                "username": "network-error",
+                "password": "password"
+            }
+
++ Response 999
+
+### GET /api/me
+
++ Request
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer dedi-access-token-for-google
+
++ Response 200 (application/json)
+
+        {
+            "username": "google-user",
+            "display_name": "Google User",
+            "email": "google-user@example.com",
+            "email_verified": true,
+            "created_at": "2015-09-01T01:04:01+02:00",
+            "created_by": "guest",
+            "_links": {
+                "self": {
+                  "href": "/api/rest/users/google-user@example.com"
+                }
+            }
+        }
+
+<!-- file: /home/eric/projects/dedistack-client/api/register.mock.apib -->
+
+# Register Mocks
+
+## Group Register
+
+Mocks for register e2e tests. It needs that the user that is created
+by the test (merlin) can log in with its credentials, and that the
+`api/me` endpoint respond with the correct data for this user.
+
+### Authentication [/api/oauth]
+
+#### User merlin [POST]
+
++ Request (application/json)
+
+    {
+        "client_id": "dedistack",
+        "grant_type": "password",
+        "username": "merlin",
+        "password": "azerty"
+    }
+
++ Response 200 (application/json)
+
+    {
+        "access_token":"access-token-for-user-merlin",
+        "expires_in":360,
+        "token_type":"Bearer",
+        "scope":"defaultscope1",
+        "refresh_token":"efd13baa2e2e812687967091ac5c0b12ef8a87b6"
+    }
+
+### Me endpoint [/api/me]
+
+#### For user merlin [GET]
+
++ Request
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer access-token-for-user-merlin
+
++ Response 200
+
+    [User merlin][]
+
+<!-- file: /home/eric/projects/dedistack-client/api/apiary.apib -->
+
+# Dedistack Api
+
+The Dedistack API is a web access REST oriented interface for developers. It used by the main website but also be open
+for external access like mobile access or tier developers.
+
+## Errors
+
+| Status | Error                 | Description                                      |
+|--------|-----------------------|--------------------------------------------------|
+|400     | missing_parameter     | When one of the required parameters is misssing. |
+|400     | invalid_response_type | When response_type parameter is invalid.         |
+|400     | invalid_request *     | When response_type parameter is invalid.         |
+|401     | unauthorized          | If the client _id can not be authorized.         |
+
+## Group Oauth
+
+Oauth is an user authentication system implementing the [OAuth2](http://tools.ietf.org/html/rfc6749) protocol. It is 
+widely used on the Dedistack API. Any access must conform to this Oauth2 implementation for a full-access to the API. 
+
+## Token Resource [/api/oauth/resource]
+
+The Token resource permit to get information about a particular token and verified if an access is granted to it.
+
+### Check acess token [GET]
+
++ Request (application/json)
+
+    The following end-point permit to check if the provided token can access to the API.
+
+    + Headers
+    
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+            Accept: application/json
+  
+        
++ Response 200 (application/json)
+
+    Expected response if the access token **is valid**
+    
+    + Body
+    
+            {
+                "success":true,
+                "message":"You accessed my APIs!"
+            }
+        
++ Response 401 (application/problem+json)
+
+    Expected response if the access token is **not valid**
+    
+    + Body
+    
+            {
+                "type": "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
+                "title": "invalid_token",
+                "status": 401,
+                "detail": "The access token provided is invalid"
+            }
+
+## Authorization request [/api/oauth]
+    
+### Authentication [POST]
+
+Request for authentication.
+
++ Request Authentication with a password grant (application/json)
+
+    + Headers
+    
+            Accept: application/json
+            
+    + Schema
+    
+            {
+                "type": "object",
+                "required": ["grant_type", "client_id"],
+                "properties": {
+                  "grant_type": {"enum": ["password"]},
+                  "client_id": {"type": "string"},
+                  "username": {"type": "string"},
+                  "password": {"type": "string"},
+                  "google_access_token": {"type": "string"}
+                }
+            }
+            
+    + Body
+
+            {
+                "grant_type": "password",
+                "client_id": "dedistack",
+                "username": "testuser",
+                "password": "password"
+            }
+
++ Response 200 (application/json)
+
+        {
+            "access_token":"a09efad49f8fa8d15412f7d71c3b79701b7f6b6",
+            "expires_in":360,
+            "token_type":"Bearer",
+            "scope":"defaultscope1",
+            "refresh_token":"efd13baa2e2e812687967091ac5c0b12ef8a87b6"
+        }
+
++ Request Authentication with a Google Access Token (application/json)
+
+    + Headers
+    
+            Accept: application/json
+            
+    + Schema
+    
+            {
+                "type": "object",
+                "required": ["grant_type", "client_id"],
+                "properties": {
+                  "grant_type": {"enum": ["google_credentials"]},
+                  "client_id": {"type": "string"},
+                  "username": {"type": "string"},
+                  "password": {"type": "string"},
+                  "google_access_token": {"type": "string"}
+                }
+            }
+            
+    + Body
+
+            {
+                "grant_type": "google_credentials",
+                "client_id": "dedistack",
+                "google_access_token": "example-google-access-token"
+            }
+
++ Response 200
+
+        {
+            "access_token":"dedi-access-token-for-google",
+            "expires_in":360,
+            "token_type":"Bearer",
+            "scope":"defaultscope1",
+            "refresh_token":"efd13baa2e2e812687967091ac5c0b12ef8a87b6"
+        }
+
+
+## Group User
+
+The user service provide a full access to the user database with all technical
+informations related to users. This service does not provide informations about
+data link with the user.
+
+## Users [/api/rest/users]
+
+This is the collection endpoint for the entity user with specific actions.
+
+### List Users [GET]
+
++ Request (application/json)
+    
+    Get all users with pagination and filter.
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+
++ Response 200 (application/hal+json)
+
+            {
+              "_links": {
+                "self": {
+                  "href": "http://localhost:8080/api/rest/users?page=1"
+                },
+                "first": {
+                  "href": "http://localhost:8080/api/rest/users"
+                },
+                "last": {
+                  "href": "http://localhost:8080/api/rest/users?page=1"
+                }
+              },
+              "_embedded": {
+                "user": [
+                  {
+                    "username": "testuser",
+                    "display_name": "testuser",
+                    "given_name": null,
+                    "family_name": "",
+                    "address": null,
+                    "email": "testuser@test.com",
+                    "email_verified": true,
+                    "created_at": null,
+                    "created_by": null,
+                    "_links": {
+                      "self": {
+                        "href": "http://localhost:8080/api/rest/users/testuser"
+                      }
+                    }
+                  },
+                  {
+                    "username": "merlin",
+                    "display_name": "DARY Romain",
+                    "given_name": "Romain",
+                    "family_name": "DARY",
+                    "address": "32 rue de la thibaudière, 69007 Lyon",
+                    "email": "romain.dary@eoko.fr",
+                    "email_verified": false,
+                    "created_at": "2015-09-17T20:15:04+02:00",
+                    "created_by": "testuser",
+                    "_links": {
+                      "self": {
+                        "href": "http://localhost:8080/api/rest/users/merlin"
+                      }
+                    }
+                  }
+                ]
+              },
+              "page_count": 1,
+              "page_size": 25,
+              "total_items": 2,
+              "page": 1
+            }
+
+### Create User [POST]
+
++ Request (application/json)
+
+    + Headers
+  
+            Accept: application/json
+            
+    + Schema
+    
+            {
+                "type": "object",
+                "required": ["username", "email", "password"],
+                "properties": {
+                    "username": {"type": "string"},
+                    "email": {"type": "string"},
+                    "display_name": {"type": "string"},
+                    "given_name": {"type": "string"},
+                    "address": {"type": "string"},
+                    "password": {"type": "string"}
+                }
+            }
+
+    + Body
+
+            {
+              "username": "merlin",
+              "email": "romain.dary@eoko.fr",
+              "password": "azerty",
+              "given_name" : "Romain",
+              "family_name": "DARY"
+            }
+
++ Response 201
+
+    [User merlin][]
+
+## User merlin [/api/rest/users/merlin]
+
+Example response for user merlin. This model is required by e2e client tests.
+
++ Model (application/hal+json; charset=utf-8)
+
+        {
+            "username": "merlin",
+            "display_name": "DARY Romain",
+            "given_name": "Romain",
+            "family_name": "DARY",
+            "address": null,
+            "email": "romain.dary@eoko.fr",
+            "email_verified": false,
+            "created_at": "2015-09-01T01:04:01+02:00",
+            "created_by": "guest",
+            "_links": {
+                "self": {
+                    "href": "/api/rest/users/merlin"
+                }
+            }
+        }
+
+## User [/api/rest/users/{id}]
+
+This endpoint give a full access to informations about a specific user.              
+
++ Model (application/hal+json; charset=utf-8) 
+
+        {
+            "username": "testuser",
+            "display_name": "Test User",
+            "given_name": null,
+            "family_name": "",
+            "address": "my custom address",
+            "email": "testuser@example.com",
+            "email_verified": false,
+            "created_at": "2015-09-01T01:04:01+02:00",
+            "created_by": "guest",
+            "_links": {
+                "self": {
+                  "href": "/api/rest/users/testuser"
+                }
+            }
+        }
+            
+### Get existing user [GET]
+
++ Parameters
+
+    + id: `testuser` (string) - Username or email of the user.
+    
++ Request
+
+    Get all information about a specific user.
+
+    + Headers
+    
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+        
++ Response 200
+
+    [User][]
+
+### Update existing user [PUT]
+
++ Parameters
+
+    + id: `testuser` (string) - Username or email of the user.
+    
++ Request
+
+    Update any informations for a specific user excepted the e-mail validation
+    that is fully handle by the application.
+
+    + Headers
+    
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+        
++ Response 200
+
+    [User][]
+
+
+### Delete existing user [DELETE]
+
++ Parameters
+
+    + id: `merlin` (string) - Username or email of the user.
+    
++ Request
+
+    Delete a specific user. This action cannot be undone and must be used carefully.
+
+    + Headers
+    
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+        
++ Response 204
+
+    The response code is 204 even if no entity exist.
+    
+    + Body
+    
+## Me [/api/me]
+
+### Get Me [GET]
+
++ Request
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+
++ Response 200
+
+    [User][]
+
+
+## Teams [/api/teams]
+
+### Get Me [GET]
+
++ Request (application/json)
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+
++ Response 200
+
+    [User][]
+
+## Products [/api/products]
+
+### Get Me [GET]
+
++ Request (application/json)
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+
++ Response 200
+
+    [User][]
+
+## Support [/api/support]
+
+### Get Me [GET]
+
++ Request (application/json)
+
+    + Headers
+  
+            Accept: application/json
+            Authorization: Bearer a09efad49f8fa8d15412f7d71c3b79701b7f6b6
+
++ Response 200
+
+    [User][]
+
+
+## Group Multilingual
+
+The API is multilingual.
+
+### FR [/api/rest/users/{username}]
+
+#### Read existing with validation Error in french [POST]
+    
++ Request (application/json)
+
+  + Headers
+
+            Accept: application/json
+            Accept-Language: fr
+  
+  + Body
+
+            {
+                "username": "john",
+                "password": "password",
+                "firstname" : "John",
+                "lastname": "Doe",
+                "address" : "my custom address",
+                "email": ""
+            }
+        
++ Response 200 (application/hal+json)
+
+            {
+                "validation_messages": {
+                    "email": {
+                        "isEmpty": "Une valeur est requise et ne peut être vide"
+                    }
+                },
+                "type": "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
+                "title": "Unprocessable Entity",
+                "status": 422,
+                "detail": "Failed Validation"
+            }
+
+## GET /message
 + Response 200 (text/plain)
       
       Hello World!
+
+## GET /api/message
++ Response 200 (text/plain)
+      
+      Hello API World!
