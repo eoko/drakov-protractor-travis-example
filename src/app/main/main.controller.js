@@ -49,9 +49,9 @@
                 headers = angular.copy(headers);
                 delete headers['Content-Type'];
                 return {
-                  headers: {
+                  headers: angular.extend({
                     Accept: 'application/json'
-                  }
+                  }, headers)
                 };
               }
             });
