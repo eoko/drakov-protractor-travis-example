@@ -21,6 +21,18 @@
         .withConfig(function(config) {
           config.setBaseUrl(config.baseUrl + '/api');
           config
+            .addFullRequestInterceptor(function restangularRequestInterceptor(data, operation, what, url, headers) {
+              //if (instance && instance.isAuthenticated()) {
+              //  var authHeaders = instance.authorizationHeaders(
+              //    Array.prototype.slice.call(arguments, 0)
+              //  );
+              //  if (authHeaders) {
+              //    return {
+              //      headers: angular.extend({}, authHeaders, headers)
+              //    };
+              //  }
+              //}
+            })
             .addFullRequestInterceptor(function(data, operation, what, url, headers) {
               headers = headers || {};
               headers['Authorization'] = 'Bearer hello-api-world';
