@@ -14,9 +14,16 @@
           config.setBaseUrl('http://localhost:3010')
         })
         .withConfig(function(config) {
+          config.setDefaultHttpFields({
+            withCredentials: true
+          });
+        })
+        .withConfig(function(config) {
           config.setBaseUrl(config.baseUrl + '/api');
           config
             .addFullRequestInterceptor(function(data, operation, what, url, headers) {
+              headers = headers || {};
+              headers['Authorization'] = 'Bearer hello-api-world';
               if (angular.isObject(data)) {
                 // POST, PUT, ...
                 return {
